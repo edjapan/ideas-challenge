@@ -19,15 +19,18 @@ const statusFilter = document.getElementById('statusFilter');
 const trackFilter = document.getElementById('trackFilter');
 const exportBtn = document.getElementById('exportBtn');
 
-// Auth State Listener
-onAuthStateChanged(auth, (user) => {
-  if (user) {
+// Simple Hardcoded Auth
+loginBtn.addEventListener('click', () => {
+  const email = emailInput.value;
+  const password = passwordInput.value;
+  
+  if (email === 'admin@futurecareerhub.in' && password === 'frex2026') {
     loginView.style.display = 'none';
     dashboardView.style.display = 'block';
     fetchLeadsFromFirestore();
   } else {
-    dashboardView.style.display = 'none';
-    loginView.style.display = 'flex';
+    loginError.textContent = 'Invalid credentials. Please check your email and password.';
+    loginError.style.display = 'block';
   }
 });
 
@@ -42,26 +45,12 @@ function fetchLeadsFromFirestore() {
   });
 }
 
-// Authentication Logic
-loginBtn.addEventListener('click', () => {
-  const email = emailInput.value;
-  const password = passwordInput.value;
-  loginBtn.textContent = 'Signing in...';
-  
-  signInWithEmailAndPassword(auth, email, password)
-    .then(() => {
-      loginBtn.textContent = 'Sign In';
-      loginError.style.display = 'none';
-    })
-    .catch((error) => {
-      loginBtn.textContent = 'Sign In';
-      loginError.textContent = error.message;
-      loginError.style.display = 'block';
-    });
-});
-
 logoutBtn.addEventListener('click', () => {
-  signOut(auth);
+  dashboardView.style.display = 'none';
+  loginView.style.display = 'flex';
+  emailInput.value = '';
+  passwordInput.value = '';
+  loginError.style.display = 'none';
 });
 
 // Render Table
