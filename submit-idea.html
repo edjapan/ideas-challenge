@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FREX Challenge - Complete Your Application</title>
+  
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --panel: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: rgba(253, 243, 238, 0.9);
+      --text-muted: rgba(253, 243, 238, 0.5);
+      --primary: #FF8F6B;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: var(--panel);
+      padding: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 600px;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
+      font-weight: 500;
+      margin-bottom: 5px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      margin-top: 0;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #fff;
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+    .input-field[readonly] {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+
+    textarea.input-field {
+      resize: vertical;
+      min-height: 200px;
+      line-height: 1.5;
+    }
+
+    .word-counter {
+      display: flex;
+      justify-content: flex-end;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+    .word-counter.error {
+      color: #ff6b6b;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn:disabled {
+      background: var(--border);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+    
+    #success-view {
+      display: none;
+      text-align: center;
+    }
+    #success-view h2 { color: #6EE7C5; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="container" id="loading-view">
+    <p style="text-align: center; color: var(--text-muted);">Loading your application...</p>
+  </div>
+
+  <div class="container" id="form-view" style="display: none;">
+    <h2>Submit Your Idea</h2>
+    <p class="subtitle">Complete your application for the FREX Challenge.</p>
+
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="nameInput" class="input-field" readonly />
+    </div>
+
+    <div class="form-group">
+      <label>Challenge Track</label>
+      <input type="text" id="trackInput" class="input-field" readonly />
+    </div>
+
+    <div class="form-group">
+      <label>Your Idea (Max 300 words)</label>
+      <textarea id="ideaInput" class="input-field" placeholder="Describe your innovative idea here..."></textarea>
+      <div class="word-counter" id="wordCounter">0 / 300 words</div>
+    </div>
+
+    <button class="btn" id="submitBtn" disabled>Submit Application</button>
+  </div>
+
+  <div class="container" id="success-view">
+    <h2>Application Complete!</h2>
+    <p style="color: var(--text-muted);">Thank you for submitting your idea. We will be in touch soon.</p>
+  </div>
+
+  <script type="module">
+    import { db } from './firebase-config.js';
+    import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // URL Parameter Parsing
+    const urlParams = new URLSearchParams(window.location.search);
+    const applicationId = urlParams.get('id');
+
+    // DOM Elements
+    const loadingView = document.getElementById('loading-view');
+    const formView = document.getElementById('form-view');
+    const successView = document.getElementById('success-view');
+    
+    const nameInput = document.getElementById('nameInput');
+    const trackInput = document.getElementById('trackInput');
+    const ideaInput = document.getElementById('ideaInput');
+    const wordCounter = document.getElementById('wordCounter');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Word Counter Logic
+    ideaInput.addEventListener('input', () => {
+      const text = ideaInput.value.trim();
+      const words = text.length > 0 ? text.split(/\s+/).length : 0;
+      
+      wordCounter.textContent = `${words} / 300 words`;
+      
+      if (words > 300) {
+        wordCounter.classList.add('error');
+        submitBtn.disabled = true;
+      } else if (words === 0) {
+        wordCounter.classList.remove('error');
+        submitBtn.disabled = true;
+      } else {
+        wordCounter.classList.remove('error');
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Fetch Application Data
+    async function loadData() {
+      if (!applicationId) {
+        loadingView.innerHTML = `<p style="text-align: center; color: #ff6b6b;">Invalid Link. Application ID is missing.</p>`;
+        return;
+      }
+
+      try {
+        const docRef = doc(db, "applications", applicationId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          nameInput.value = data.name;
+          trackInput.value = data.track;
+          
+          loadingView.style.display = 'none';
+          formView.style.display = 'block';
+        } else {
+          loadingView.innerHTML = `<p style="text-align: center; color: #ff6b6b;">Application not found.</p>`;
+        }
+      } catch (err) {
+        console.error(err);
+        loadingView.innerHTML = `<p style="text-align: center; color: #ff6b6b;">Error loading data.</p>`;
+      }
+    }
+    
+    loadData();
+
+    // Form Submission
+    submitBtn.addEventListener('click', async () => {
+      const ideaEssay = ideaInput.value;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+      
+      try {
+        const docRef = doc(db, "applications", applicationId);
+        await updateDoc(docRef, { 
+          ideaEssay, 
+          status: "Idea Submitted" 
+        });
+        formView.style.display = 'none';
+        successView.style.display = 'block';
+      } catch (err) {
+        console.error(err);
+        alert("There was an error saving your idea. Please try again.");
+        submitBtn.textContent = "Submit Application";
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

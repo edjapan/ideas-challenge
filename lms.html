@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>FREX Challenge - Lead Management System</title>
+  
+  <style>
+    /* LMS Specific Styles */
+    :root {
+      --bg: #0a0a0b;
+      --panel: rgba(255, 255, 255, 0.05);
+      --border: rgba(255, 255, 255, 0.1);
+      --text: rgba(253, 243, 238, 0.9);
+      --text-muted: rgba(253, 243, 238, 0.5);
+      --primary: #FF8F6B;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* LOGIN VIEW */
+    #login-view {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+    }
+    .login-box {
+      background: var(--panel);
+      padding: 40px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+    .login-box h2 { margin: 0 0 20px; font-weight: 500; }
+    .input-field {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #fff;
+      box-sizing: border-box;
+    }
+    .btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--primary);
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn:hover { opacity: 0.9; }
+
+    /* DASHBOARD VIEW */
+    #dashboard-view {
+      display: none;
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      background: var(--panel);
+      padding: 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+    .filters select, .filters input {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { color: var(--text-muted); font-size: 13px; font-weight: 500; }
+    tr:hover { background: rgba(255,255,255,0.02); }
+    .status-badge {
+      padding: 4px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .status-step1 { background: rgba(255, 179, 122, 0.2); color: #FFB37A; }
+    .status-completed { background: rgba(110, 231, 197, 0.2); color: #6EE7C5; }
+    
+    .btn-export { width: auto; padding: 8px 16px; font-size: 14px; }
+    .btn-logout { background: transparent; color: var(--text-muted); border: 1px solid var(--border); width: auto; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+
+  <!-- Login Section -->
+  <div id="login-view">
+    <div class="login-box">
+      <h2>LMS Login</h2>
+      <input type="email" id="emailInput" class="input-field" placeholder="Admin Email" />
+      <input type="password" id="passwordInput" class="input-field" placeholder="Password" />
+      <button class="btn" id="loginBtn">Sign In</button>
+      <p id="loginError" style="color: #ff6b6b; font-size: 13px; display: none; margin-top: 10px;"></p>
+    </div>
+  </div>
+
+  <!-- Dashboard Section -->
+  <div id="dashboard-view">
+    <div class="header">
+      <h2>Lead Management</h2>
+      <button class="btn btn-logout" id="logoutBtn">Logout</button>
+    </div>
+
+    <div class="filters">
+      <input type="date" id="dateFilter" title="Filter by date" />
+      <select id="statusFilter">
+        <option value="">All Statuses</option>
+        <option value="Step 1 Complete">Step 1 Complete</option>
+        <option value="Idea Submitted">Idea Submitted</option>
+      </select>
+      <select id="trackFilter">
+        <option value="">All Tracks</option>
+        <option value="Lunar Surface Exploration & Dev">Lunar Surface</option>
+        <option value="Spacecraft & Rovers">Spacecraft & Rovers</option>
+        <option value="Data Science">Data Science</option>
+        <option value="Small Satellite Mission Concept">Small Satellite</option>
+        <option value="Earth Observation">Earth Observation</option>
+        <option value="Comm & Navigation">Comm & Navigation</option>
+      </select>
+      <button class="btn btn-export" id="exportBtn">Export CSV</button>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table id="leadsTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>University</th>
+            <th>Track</th>
+            <th>Status</th>
+            <th>Essay</th>
+          </tr>
+        </thead>
+        <tbody id="leadsTableBody">
+          <!-- Rows populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Firebase Integration Script -->
+  <!-- Note: We will add Firebase SDK and config here once provided by the user -->
+  <script type="module" src="lms.js"></script>
+</body>
+</html>
