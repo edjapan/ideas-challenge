@@ -12,7 +12,7 @@ window.submitLeadToFirebase = async function(leadData) {
     console.log("Document written with ID: ", docRef.id);
     
     // Construct the unique link based on the current domain
-    const uniqueLink = `${window.location.origin}/submit-idea.html?id=${docRef.id}`;
+    const uniqueLink = `${window.location.origin}/frex-challenge/submit-idea?id=${docRef.id}`;
     
     // Send email via EmailJS
     await fetch('https://api.emailjs.com/api/v1.0/email/send', {
