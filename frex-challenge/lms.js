@@ -87,6 +87,11 @@ function renderTable() {
       <td>
         <button class="btn btn-logout" onclick="alert('Essay:\\n${lead.ideaEssay || 'No essay yet.'}')">View</button>
       </td>
+      <td>
+        <button class="btn" style="padding: 6px 12px; font-size: 12px; width: auto;" onclick="window.sendNotification('${lead.id}', '${lead.name}', '${lead.email}', '${lead.track}', '${lead.status}', this)">
+          ${lead.status === 'Step 1 Complete' ? 'Send Reminder' : 'Send Status Email'}
+        </button>
+      </td>
     `;
     leadsTableBody.appendChild(row);
   });
@@ -138,3 +143,67 @@ exportBtn.addEventListener('click', () => {
   a.setAttribute('download', 'frex_leads_export.csv');
   a.click();
 });
+
+// EmailJS Notification Logic
+window.sendNotification = async function(leadId, name, email, track, status, buttonElement) {
+  const originalText = buttonElement.textContent;
+  buttonElement.textContent = 'Sending...';
+  buttonElement.disabled = true;
+
+  try {
+    // Determine which template to use based on the user's status
+    let templateId = '';
+    
+    if (status === 'Step 1 Complete') {
+      // TODO: Replace with your actual EmailJS Template ID for the "Reminder Email"
+      templateId = 'template_YOUR_REMINDER_ID'; 
+    } else {
+      // TODO: Replace with your actual EmailJS Template ID for the "Acceptance/Rejection Email"
+      templateId = 'template_YOUR_STATUS_UPDATE_ID'; 
+    }
+    
+    if (templateId.includes('YOUR_')) {
+      alert("Please configure the EmailJS Template IDs in lms.js first!");
+      buttonElement.textContent = originalText;
+      buttonElement.disabled = false;
+      return;
+    }
+
+    const uniqueLink = `${window.location.origin}/frex-challenge/submit-idea?id=${leadId}`;
+    
+    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        service_id: 'service_fgv0pwa', // Your existing service ID
+        template_id: templateId,
+        user_id: 'EErfqFIU4oDEsN8ww', // Your existing user ID
+        template_params: {
+          name: name,
+          email: email,
+          track: track,
+          unique_link: uniqueLink
+        }
+      })
+    });
+
+    buttonElement.textContent = 'Sent! ✔';
+    buttonElement.style.background = '#6EE7C5';
+    buttonElement.style.color = '#000';
+    
+    setTimeout(() => {
+      buttonElement.textContent = originalText;
+      buttonElement.style.background = '';
+      buttonElement.style.color = '';
+      buttonElement.disabled = false;
+    }, 3000);
+    
+  } catch (err) {
+    console.error("Error sending email: ", err);
+    alert("Failed to send email. Check console for details.");
+    buttonElement.textContent = originalText;
+    buttonElement.disabled = false;
+  }
+};
