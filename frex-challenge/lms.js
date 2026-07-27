@@ -18,6 +18,7 @@ const dateFilter = document.getElementById('dateFilter');
 const statusFilter = document.getElementById('statusFilter');
 const trackFilter = document.getElementById('trackFilter');
 const exportBtn = document.getElementById('exportBtn');
+const exportZohoBtn = document.getElementById('exportZohoBtn');
 
 // Simple Hardcoded Auth
 loginBtn.addEventListener('click', () => {
@@ -88,9 +89,12 @@ function renderTable() {
         <button class="btn btn-logout" onclick="alert('Essay:\\n${lead.ideaEssay || 'No essay yet.'}')">View</button>
       </td>
       <td>
+        <div style="display: flex; gap: 8px;">
         ${lead.status === 'Step 1 Complete' 
-          ? `<button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; width: auto;" onclick="window.sendNotification('${lead.id}', '${lead.name}', '${lead.email}', '${lead.track}', '${lead.status}', this)">Send Reminder</button>` 
+          ? `<button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; width: auto;" onclick="window.sendNotification('${lead.id}', '${lead.name}', '${lead.email}', '${lead.track}', '${lead.status}', this)">Send Reminder</button>
+             <button class="btn btn-logout" style="padding: 6px 12px; font-size: 12px; width: auto;" onclick="window.copyLink('${lead.id}', this)">Copy Link</button>` 
           : `<span style="font-size: 11px; color: var(--text-muted);">No action</span>`}
+        </div>
       </td>
     `;
     leadsTableBody.appendChild(row);
@@ -144,6 +148,56 @@ exportBtn.addEventListener('click', () => {
   a.click();
 });
 
+// Zoho CRM Export Logic
+if (exportZohoBtn) {
+  exportZohoBtn.addEventListener('click', () => {
+    if (leadsData.length === 0) {
+      alert("No data to export");
+      return;
+    }
+    
+    // Get filtered data
+    const filteredData = leadsData.filter(lead => {
+      if (dateFilter.value && new Date(lead.createdAt).toISOString().split('T')[0] !== dateFilter.value) return false;
+      if (statusFilter.value && lead.status !== statusFilter.value) return false;
+      if (trackFilter.value && lead.track !== trackFilter.value) return false;
+      return true;
+    });
+
+    if (filteredData.length === 0) {
+      alert("No data matches current filters");
+      return;
+    }
+
+    // Zoho CRM Standard & Custom Fields
+    const headers = ["Last Name", "Company", "Email", "Phone", "Lead Status", "Track", "Question", "Idea Essay"];
+    
+    // Map rows
+    const csvRows = filteredData.map(lead => {
+      const name = lead.name ? `"${lead.name.replace(/"/g, '""')}"` : '""';
+      const company = lead.university ? `"${lead.university.replace(/"/g, '""')}"` : '""';
+      const email = lead.email ? `"${lead.email.replace(/"/g, '""')}"` : '""';
+      const phone = lead.phone ? `"${lead.phone.replace(/"/g, '""')}"` : '""';
+      const status = lead.status ? `"${lead.status.replace(/"/g, '""')}"` : '""';
+      const track = lead.track ? `"${lead.track.replace(/"/g, '""')}"` : '""';
+      const question = lead.question ? `"${lead.question.replace(/"/g, '""')}"` : '""';
+      const essay = lead.ideaEssay ? `"${lead.ideaEssay.replace(/"/g, '""')}"` : '""';
+      
+      return `${name},${company},${email},${phone},${status},${track},${question},${essay}`;
+    });
+
+    const csvString = [headers.join(','), ...csvRows].join('\\n');
+    
+    // Trigger download
+    const blob = new Blob([csvString], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.setAttribute('href', url);
+    a.setAttribute('download', 'zoho_leads_export.csv');
+    a.click();
+  });
+}
+
 // EmailJS Notification Logic
 window.sendNotification = async function(leadId, name, email, track, status, buttonElement) {
   const originalText = buttonElement.textContent;
@@ -195,4 +249,20 @@ window.sendNotification = async function(leadId, name, email, track, status, but
     buttonElement.textContent = originalText;
     buttonElement.disabled = false;
   }
+};
+window.copyLink = function(leadId, buttonElement) {
+  const originalText = buttonElement.textContent;
+  const uniqueLink = `${window.location.origin}/frex-challenge/submit-idea?id=${leadId}`;
+  
+  navigator.clipboard.writeText(uniqueLink).then(() => {
+    buttonElement.textContent = 'Copied!';
+    buttonElement.style.color = '#6EE7C5';
+    setTimeout(() => {
+      buttonElement.textContent = originalText;
+      buttonElement.style.color = '';
+    }, 2000);
+  }).catch(err => {
+    console.error('Failed to copy: ', err);
+    alert('Failed to copy link. Check console.');
+  });
 };

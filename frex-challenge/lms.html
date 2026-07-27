@@ -230,7 +230,7 @@
     </div>
 
     <div class="filters">
-      <input type="date" id="dateFilter" title="Filter by date" />
+      <input type="date" id="dateFilter" />
       <select id="statusFilter">
         <option value="">All Statuses</option>
         <option value="Step 1 Complete">Step 1 Complete</option>
@@ -238,14 +238,14 @@
       </select>
       <select id="trackFilter">
         <option value="">All Tracks</option>
-        <option value="Lunar Surface Exploration & Dev">Lunar Surface</option>
-        <option value="Spacecraft & Rovers">Spacecraft & Rovers</option>
-        <option value="Data Science">Data Science</option>
-        <option value="Small Satellite Mission Concept">Small Satellite</option>
-        <option value="Earth Observation">Earth Observation</option>
-        <option value="Comm & Navigation">Comm & Navigation</option>
+        <option value="Explore new scientific discoveries in space">Explore new scientific discoveries in space</option>
+        <option value="Solve environmental problems on Earth using space tech">Solve environmental problems on Earth</option>
+        <option value="Design creative businesses for the space economy">Design creative businesses for the space economy</option>
       </select>
-      <button class="btn btn-export" id="exportBtn">Export CSV</button>
+      <div style="display: flex; gap: 8px; margin-left: auto;">
+        <button class="btn btn-export" id="exportBtn">Export CSV</button>
+        <button class="btn btn-export" id="exportZohoBtn" style="background: linear-gradient(135deg, var(--maroon-light), var(--maroon)); color: var(--cream); border: none;">Export for Zoho CRM</button>
+      </div>
     </div>
 
     <div class="table-container">
