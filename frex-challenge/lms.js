@@ -3,6 +3,8 @@ import { collection, onSnapshot, query, orderBy } from "https://www.gstatic.com/
 import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 let leadsData = [];
+let leadsLineChartInstance = null;
+let trackPieChartInstance = null;
 
 // DOM Elements
 const loginView = document.getElementById('login-view');
@@ -115,6 +117,102 @@ function renderTable() {
       </td>
     `;
     leadsTableBody.appendChild(row);
+  });
+
+  // Call chart render
+  renderCharts(filteredData);
+}
+
+// Chart Rendering Logic
+function renderCharts(filteredData) {
+  const ctxLine = document.getElementById('leadsLineChart');
+  const ctxPie = document.getElementById('trackPieChart');
+  if (!ctxLine || !ctxPie || typeof Chart === 'undefined') return;
+
+  // 1. Line Chart (Leads over time)
+  const dateCounts = {};
+  filteredData.forEach(lead => {
+    const dateStr = new Date(lead.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    dateCounts[dateStr] = (dateCounts[dateStr] || 0) + 1;
+  });
+  
+  // Sort dates
+  const sortedDates = Object.keys(dateCounts).sort((a,b) => new Date(a + " 2026") - new Date(b + " 2026")); // Simple sort assuming current year
+  const dateValues = sortedDates.map(d => dateCounts[d]);
+
+  if (leadsLineChartInstance) leadsLineChartInstance.destroy();
+  
+  Chart.defaults.color = 'rgba(255, 255, 255, 0.6)';
+  Chart.defaults.font.family = 'Inter';
+
+  const gradient = ctxLine.getContext('2d').createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, 'rgba(235, 122, 101, 0.4)');
+  gradient.addColorStop(1, 'rgba(235, 122, 101, 0.0)');
+
+  leadsLineChartInstance = new Chart(ctxLine, {
+    type: 'line',
+    data: {
+      labels: sortedDates,
+      datasets: [{
+        label: 'Leads',
+        data: dateValues,
+        borderColor: '#EB7A65',
+        backgroundColor: gradient,
+        borderWidth: 3,
+        fill: true,
+        tension: 0.4,
+        pointBackgroundColor: '#161218',
+        pointBorderColor: '#EB7A65',
+        pointBorderWidth: 2,
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { stepSize: 1 } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // 2. Doughnut Chart (Tracks)
+  const trackCounts = {};
+  filteredData.forEach(lead => {
+    let track = lead.track || 'Unknown';
+    if (track.includes('creative businesses')) track = 'Creative Businesses';
+    else if (track.includes('environmental problems')) track = 'Earth / Climate';
+    else if (track.includes('scientific discoveries')) track = 'Space Exploration';
+    
+    trackCounts[track] = (trackCounts[track] || 0) + 1;
+  });
+  
+  const trackLabels = Object.keys(trackCounts);
+  const trackValues = trackLabels.map(t => trackCounts[t]);
+
+  if (trackPieChartInstance) trackPieChartInstance.destroy();
+
+  trackPieChartInstance = new Chart(ctxPie, {
+    type: 'doughnut',
+    data: {
+      labels: trackLabels,
+      datasets: [{
+        data: trackValues,
+        backgroundColor: ['#EB7A65', '#6EE7C5', '#FFB37A', '#8C4646'],
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '75%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: { size: 11 } } }
+      }
+    }
   });
 }
 

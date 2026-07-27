@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     /* LMS Premium Styles */
     :root {
@@ -139,14 +139,45 @@
     }
     .filters {
       display: flex;
-      gap: 12px;
-      margin-bottom: 24px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-      padding: 16px;
-      border-radius: 12px;
-      border: 1px solid var(--panel-border);
+      gap: 16px;
+      margin-bottom: 0px;
+      background: rgba(0,0,0,0.2);
+      padding: 24px 30px;
+      border-radius: 0;
+      border-bottom: 1px solid var(--panel-border);
       backdrop-filter: blur(12px);
       flex-wrap: wrap;
+    }
+    
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border-radius: 16px;
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      overflow: hidden;
+    }
+
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      padding: 30px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .chart-card {
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 20px;
+      position: relative;
+    }
+    .chart-card h3 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 15px;
+      color: var(--cream);
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
     .filters select {
       background: rgba(0,0,0,0.3) url('data:image/svg+xml;utf8,<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(253, 243, 238, 0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right 12px center;
@@ -165,10 +196,6 @@
     }
     
     .table-container {
-      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-      border-radius: 12px;
-      border: 1px solid var(--panel-border);
-      backdrop-filter: blur(12px);
       overflow-x: auto;
     }
     table {
@@ -296,11 +323,30 @@
   <!-- Dashboard Section -->
   <div id="dashboard-view">
     <div class="header">
-      <h2>Lead Management</h2>
-      <button class="btn btn-logout" id="logoutBtn">Logout</button>
+      <div class="header-content" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <h2>Lead Management</h2>
+        <button class="btn btn-logout" id="logoutBtn">Logout</button>
+      </div>
     </div>
+    
+    <div class="panel">
+      <!-- Analytics Grid -->
+      <div class="analytics-grid">
+        <div class="chart-card">
+          <h3>Leads Over Time</h3>
+          <div style="position: relative; height: 260px; width: 100%;">
+            <canvas id="leadsLineChart"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>Track Popularity</h3>
+          <div style="position: relative; height: 260px; width: 100%; display: flex; justify-content: center;">
+            <canvas id="trackPieChart"></canvas>
+          </div>
+        </div>
+      </div>
 
-    <div class="filters">
+      <div class="filters">
       <select id="dateFilter">
         <option value="all">All Time</option>
         <option value="today">Today</option>
@@ -343,6 +389,7 @@
         </tbody>
       </table>
     </div>
+  </div>
   </div>
 
   <!-- Firebase Integration Script -->
