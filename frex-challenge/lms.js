@@ -17,7 +17,6 @@ const leadsTableBody = document.getElementById('leadsTableBody');
 const dateFilter = document.getElementById('dateFilter');
 const statusFilter = document.getElementById('statusFilter');
 const trackFilter = document.getElementById('trackFilter');
-const exportBtn = document.getElementById('exportBtn');
 const exportZohoBtn = document.getElementById('exportZohoBtn');
 
 // Simple Hardcoded Auth
@@ -59,10 +58,28 @@ function renderTable() {
   leadsTableBody.innerHTML = '';
   
   const filteredData = leadsData.filter(lead => {
-    // Date Filter (matches YYYY-MM-DD)
-    if (dateFilter.value) {
-      const leadDate = new Date(lead.createdAt).toISOString().split('T')[0];
-      if (leadDate !== dateFilter.value) return false;
+    // Date Filter
+    if (dateFilter.value && dateFilter.value !== 'all') {
+      const leadDateObj = new Date(lead.createdAt);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (dateFilter.value === 'today') {
+        if (leadDateObj < today) return false;
+      } else if (dateFilter.value === 'yesterday') {
+        if (leadDateObj < yesterday || leadDateObj >= today) return false;
+      } else if (dateFilter.value === '7days') {
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        if (leadDateObj < sevenDaysAgo) return false;
+      } else if (dateFilter.value === '30days') {
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        if (leadDateObj < thirtyDaysAgo) return false;
+      }
     }
     // Status Filter
     if (statusFilter.value && lead.status !== statusFilter.value) return false;
@@ -84,9 +101,9 @@ function renderTable() {
       <td>${lead.email}</td>
       <td>${lead.university}</td>
       <td class="track-cell" title="${lead.track}">${lead.track}</td>
-      <td><span class="status-badge ${statusClass}">${lead.status}</span></td>
+      <td><span class="status-text ${statusClass}">${lead.status}</span></td>
       <td>
-        <button class="btn btn-logout" onclick="alert('Essay:\\n${lead.ideaEssay || 'No essay yet.'}')">View</button>
+        <button class="btn btn-logout" onclick="window.viewEssay('${lead.id}')">View</button>
       </td>
       <td>
         <div style="display: flex; gap: 8px;">
@@ -106,47 +123,7 @@ dateFilter.addEventListener('change', renderTable);
 statusFilter.addEventListener('change', renderTable);
 trackFilter.addEventListener('change', renderTable);
 
-// CSV Export Logic
-exportBtn.addEventListener('click', () => {
-  if (leadsData.length === 0) {
-    alert("No data to export");
-    return;
-  }
-  
-  // Get filtered data
-  const filteredData = leadsData.filter(lead => {
-    if (dateFilter.value && new Date(lead.createdAt).toISOString().split('T')[0] !== dateFilter.value) return false;
-    if (statusFilter.value && lead.status !== statusFilter.value) return false;
-    if (trackFilter.value && lead.track !== trackFilter.value) return false;
-    return true;
-  });
-
-  if (filteredData.length === 0) {
-    alert("No data matches current filters");
-    return;
-  }
-
-  // Define headers
-  const headers = ["Date", "Name", "Email", "University", "Track", "Status", "Idea Essay"];
-  
-  // Map rows
-  const csvRows = filteredData.map(lead => {
-    const dateStr = new Date(lead.createdAt).toISOString();
-    // Escape quotes in essay
-    const essay = lead.ideaEssay ? `"${lead.ideaEssay.replace(/"/g, '""')}"` : '""';
-    return `${dateStr},"${lead.name}","${lead.email}","${lead.university}","${lead.track}","${lead.status}",${essay}`;
-  });
-
-  const csvString = [headers.join(','), ...csvRows].join('\\n');
-  
-  // Trigger download
-  const blob = new Blob([csvString], { type: 'text/csv' });
-  const url = window.URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.setAttribute('href', url);
-  a.setAttribute('download', 'frex_leads_export.csv');
-  a.click();
-});
+// Export logic removed
 
 // Zoho CRM Export Logic
 if (exportZohoBtn) {
@@ -158,7 +135,18 @@ if (exportZohoBtn) {
     
     // Get filtered data
     const filteredData = leadsData.filter(lead => {
-      if (dateFilter.value && new Date(lead.createdAt).toISOString().split('T')[0] !== dateFilter.value) return false;
+      if (dateFilter.value && dateFilter.value !== 'all') {
+        const leadDateObj = new Date(lead.createdAt);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        if (dateFilter.value === 'today' && leadDateObj < today) return false;
+        if (dateFilter.value === 'yesterday' && (leadDateObj < yesterday || leadDateObj >= today)) return false;
+        if (dateFilter.value === '7days' && leadDateObj < new Date(today.setDate(today.getDate() - 7))) return false;
+        if (dateFilter.value === '30days' && leadDateObj < new Date(today.setDate(today.getDate() - 30))) return false;
+      }
       if (statusFilter.value && lead.status !== statusFilter.value) return false;
       if (trackFilter.value && lead.track !== trackFilter.value) return false;
       return true;
@@ -265,4 +253,15 @@ window.copyLink = function(leadId, buttonElement) {
     console.error('Failed to copy: ', err);
     alert('Failed to copy link. Check console.');
   });
+};
+
+window.viewEssay = function(leadId) {
+  const lead = leadsData.find(l => l.id === leadId);
+  if (!lead) return;
+  
+  const essayContent = document.getElementById('essayContent');
+  const essayModal = document.getElementById('essayModal');
+  
+  essayContent.textContent = lead.ideaEssay || 'No essay submitted yet.';
+  essayModal.style.display = 'flex';
 };

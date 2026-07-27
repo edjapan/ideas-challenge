@@ -148,16 +148,18 @@
       backdrop-filter: blur(12px);
       flex-wrap: wrap;
     }
-    .filters select, .filters input {
-      background: rgba(0,0,0,0.3);
+    .filters select {
+      background: rgba(0,0,0,0.3) url('data:image/svg+xml;utf8,<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(253, 243, 238, 0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right 12px center;
       color: var(--text);
       border: 1px solid var(--panel-border);
-      padding: 10px 14px;
+      padding: 10px 36px 10px 14px;
       border-radius: 8px;
       font-family: 'Inter';
       font-size: 13px;
+      appearance: none;
+      cursor: pointer;
     }
-    .filters select:focus, .filters input:focus {
+    .filters select:focus {
       outline: none;
       border-color: var(--accent);
     }
@@ -192,15 +194,25 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: rgba(255,255,255,0.02); }
     
-    .status-badge {
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      display: inline-block;
+    .status-text {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
     }
-    .status-step1 { background: rgba(255, 179, 122, 0.15); color: #FFB37A; border: 1px solid rgba(255,179,122,0.3); }
-    .status-completed { background: rgba(110, 231, 197, 0.15); color: #6EE7C5; border: 1px solid rgba(110,231,197,0.3); }
+    .status-text::before {
+      content: '';
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .status-step1::before { background: #FFB37A; box-shadow: 0 0 8px rgba(255, 179, 122, 0.5); }
+    .status-step1 { color: rgba(255, 255, 255, 0.8); }
+    
+    .status-completed::before { background: #6EE7C5; box-shadow: 0 0 8px rgba(110, 231, 197, 0.5); }
+    .status-completed { color: rgba(255, 255, 255, 0.8); }
     
     .btn-export { width: auto; font-size: 13px; padding: 10px 18px; margin-left: auto; }
     .btn-logout { width: auto; padding: 8px 16px; font-size: 13px; }
@@ -210,6 +222,61 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    
+    /* MODAL STYLES */
+    #essayModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-content {
+      background: linear-gradient(180deg, #161218, #0a060c);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+    }
+    .modal-header {
+      padding: 24px 30px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h3 {
+      margin: 0;
+      color: var(--cream);
+      font-size: 18px;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 24px;
+      line-height: 1;
+      padding: 0;
+      transition: color 0.2s;
+    }
+    .modal-close:hover { color: #fff; }
+    .modal-body {
+      padding: 30px;
+      overflow-y: auto;
+      font-size: 15px;
+      line-height: 1.6;
+      color: rgba(255,255,255,0.85);
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -234,7 +301,13 @@
     </div>
 
     <div class="filters">
-      <input type="date" id="dateFilter" />
+      <select id="dateFilter">
+        <option value="all">All Time</option>
+        <option value="today">Today</option>
+        <option value="yesterday">Yesterday</option>
+        <option value="7days">Last 7 Days</option>
+        <option value="30days">Last 30 Days</option>
+      </select>
       <select id="statusFilter">
         <option value="">All Statuses</option>
         <option value="Step 1 Complete">Step 1 Complete</option>
@@ -247,7 +320,6 @@
         <option value="Design creative businesses for the space economy">Design creative businesses for the space economy</option>
       </select>
       <div style="display: flex; gap: 8px; margin-left: auto;">
-        <button class="btn btn-export" id="exportBtn">Export CSV</button>
         <button class="btn btn-export" id="exportZohoBtn" style="background: linear-gradient(135deg, var(--maroon-light), var(--maroon)); color: var(--cream); border: none;">Export for Zoho CRM</button>
       </div>
     </div>
@@ -275,6 +347,17 @@
 
   <!-- Firebase Integration Script -->
   <!-- Note: We will add Firebase SDK and config here once provided by the user -->
-  <script type="module" src="lms.js"></script>
+  <!-- Essay Modal -->
+  <div id="essayModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Submission Essay</h3>
+        <button class="modal-close" onclick="document.getElementById('essayModal').style.display='none'">&times;</button>
+      </div>
+      <div class="modal-body" id="essayContent"></div>
+    </div>
+  </div>
+
+  <script type="module" src="./lms.js"></script>
 </body>
 </html>
