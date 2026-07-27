@@ -8,21 +8,6 @@
   <title>Education Japan — FREX Future Innovators Challenge</title>
   <meta name="description" content="Submit your FREX Future Innovators Challenge research idea through Education Japan, in partnership with the FREX program at Ritsumeikan University. Four challenge tracks: Climate AI, Satellite Observation, Water Security, Space Mobility." />
   
-  <!-- Meta Pixel Code -->
-  <script>
-  !function(f,b,e,v,n,t,s)
-  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-  n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];
-  s.parentNode.insertBefore(t,s)}(window, document,'script',
-  'https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', '2133094137246845');
-  </script>
-  <!-- End Meta Pixel Code -->
-  <!-- End Meta Pixel Code -->
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
@@ -1357,8 +1342,6 @@
     }
 
   </style>
-  <!-- Umami Analytics -->
-  <script defer src="https://cloud.umami.is/script.js" data-website-id="e4a780a3-d6ea-464b-8dd2-b8ee1a451f74"></script>
 </head>
 
 <body>
@@ -2206,12 +2189,17 @@
 
       // Submit to Firebase
       window.submitLeadToFirebase(leadData).then(() => {
-        // Track the Lead event in Facebook Pixel
-        if (typeof fbq === 'function') {
-          fbq('track', 'Lead', {
-            content_name: leadData.track
-          });
-        }
+        // Dynamically Inject Umami
+        const umamiScript = document.createElement('script');
+        umamiScript.defer = true;
+        umamiScript.src = 'https://cloud.umami.is/script.js';
+        umamiScript.setAttribute('data-website-id', 'e4a780a3-d6ea-464b-8dd2-b8ee1a451f74');
+        document.head.appendChild(umamiScript);
+
+        // Dynamically Inject FB Pixel & Track Lead
+        !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '2133094137246845');
+        fbq('track', 'Lead', { content_name: leadData.track });
         
         // If valid, show success state
         document.querySelector('.w-step[data-step="registration"]').style.display = 'none';
