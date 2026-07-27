@@ -82,15 +82,15 @@ function renderTable() {
       <td>${lead.name}</td>
       <td>${lead.email}</td>
       <td>${lead.university}</td>
-      <td>${lead.track}</td>
+      <td class="track-cell" title="${lead.track}">${lead.track}</td>
       <td><span class="status-badge ${statusClass}">${lead.status}</span></td>
       <td>
         <button class="btn btn-logout" onclick="alert('Essay:\\n${lead.ideaEssay || 'No essay yet.'}')">View</button>
       </td>
       <td>
-        <button class="btn" style="padding: 6px 12px; font-size: 12px; width: auto;" onclick="window.sendNotification('${lead.id}', '${lead.name}', '${lead.email}', '${lead.track}', '${lead.status}', this)">
-          ${lead.status === 'Step 1 Complete' ? 'Send Reminder' : 'Send Status Email'}
-        </button>
+        ${lead.status === 'Step 1 Complete' 
+          ? `<button class="btn btn-primary" style="padding: 6px 12px; font-size: 12px; width: auto;" onclick="window.sendNotification('${lead.id}', '${lead.name}', '${lead.email}', '${lead.track}', '${lead.status}', this)">Send Reminder</button>` 
+          : `<span style="font-size: 11px; color: var(--text-muted);">No action</span>`}
       </td>
     `;
     leadsTableBody.appendChild(row);
@@ -151,23 +151,12 @@ window.sendNotification = async function(leadId, name, email, track, status, but
   buttonElement.disabled = true;
 
   try {
-    // Determine which template to use based on the user's status
-    let templateId = '';
-    
-    if (status === 'Step 1 Complete') {
-      // TODO: Replace with your actual EmailJS Template ID for the "Reminder Email"
-      templateId = 'template_YOUR_REMINDER_ID'; 
-    } else {
-      // TODO: Replace with your actual EmailJS Template ID for the "Acceptance/Rejection Email"
-      templateId = 'template_YOUR_STATUS_UPDATE_ID'; 
-    }
-    
-    if (templateId.includes('YOUR_')) {
-      alert("Please configure the EmailJS Template IDs in lms.js first!");
-      buttonElement.textContent = originalText;
-      buttonElement.disabled = false;
+    // Only 'Step 1 Complete' sends a reminder.
+    if (status !== 'Step 1 Complete') {
       return;
     }
+    
+    let templateId = 'template_o9mzhys'; 
 
     const uniqueLink = `${window.location.origin}/frex-challenge/submit-idea?id=${leadId}`;
     

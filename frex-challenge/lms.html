@@ -6,15 +6,22 @@
   <meta name="robots" content="noindex, nofollow" />
   <title>FREX Challenge - Lead Management System</title>
   
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  
   <style>
-    /* LMS Specific Styles */
+    /* LMS Premium Styles */
     :root {
-      --bg: #0a0a0b;
+      --maroon: #8b2f3a;
+      --maroon-light: #b5495a;
+      --cream: #fdf3ee;
+      --panel-border: rgba(255, 255, 255, 0.14);
+      --accent: #ffb37a;
+      --bg: #0a060c;
       --panel: rgba(255, 255, 255, 0.05);
-      --border: rgba(255, 255, 255, 0.1);
       --text: rgba(253, 243, 238, 0.9);
       --text-muted: rgba(253, 243, 238, 0.5);
-      --primary: #FF8F6B;
     }
 
     body {
@@ -25,6 +32,7 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
 
     /* LOGIN VIEW */
@@ -36,42 +44,81 @@
       flex: 1;
     }
     .login-box {
-      background: var(--panel);
+      background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+      backdrop-filter: blur(12px);
       padding: 40px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
+      border-radius: 16px;
+      border: 1px solid var(--panel-border);
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
     }
-    .login-box h2 { margin: 0 0 20px; font-weight: 500; }
+    .login-box h2 { 
+      margin: 0 0 24px; 
+      font-weight: 700; 
+      font-size: 24px;
+      letter-spacing: -0.5px;
+      color: var(--cream);
+    }
     .input-field {
       width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      background: rgba(0,0,0,0.2);
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      padding: 14px;
+      margin-bottom: 16px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
       color: #fff;
+      font-size: 14px;
+      font-family: 'Inter';
       box-sizing: border-box;
+      transition: border-color 0.2s ease;
     }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
     .btn {
-      width: 100%;
-      padding: 12px;
-      background: var(--primary);
-      color: #000;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--cream);
+      padding: 12px 24px;
+      border-radius: 999px;
       cursor: pointer;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+      font-family: 'Inter';
+      width: 100%;
     }
-    .btn:hover { opacity: 0.9; }
+    .btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--maroon-light), var(--maroon));
+      border-color: transparent;
+      box-shadow: 0 8px 24px rgba(139, 47, 58, 0.45);
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: linear-gradient(135deg, #c45264, #9a3541);
+      box-shadow: 0 10px 30px rgba(139, 47, 58, 0.6);
+    }
 
     /* DASHBOARD VIEW */
     #dashboard-view {
       display: none;
       padding: 40px;
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
       width: 100%;
       box-sizing: border-box;
@@ -82,47 +129,84 @@
       align-items: center;
       margin-bottom: 30px;
     }
+    .header h2 {
+      font-weight: 800;
+      font-size: 28px;
+      letter-spacing: -0.5px;
+      color: var(--cream);
+      margin: 0;
+    }
     .filters {
       display: flex;
-      gap: 15px;
-      margin-bottom: 20px;
-      background: var(--panel);
-      padding: 15px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      gap: 12px;
+      margin-bottom: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      flex-wrap: wrap;
     }
     .filters select, .filters input {
-      background: var(--bg);
+      background: rgba(0,0,0,0.3);
       color: var(--text);
-      border: 1px solid var(--border);
-      padding: 8px 12px;
-      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: 'Inter';
+      font-size: 13px;
+    }
+    .filters select:focus, .filters input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    
+    .table-container {
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
+      border-radius: 12px;
+      border: 1px solid var(--panel-border);
+      backdrop-filter: blur(12px);
+      overflow-x: auto;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      background: var(--panel);
-      border-radius: 8px;
-      overflow: hidden;
+      text-align: left;
     }
     th, td {
-      padding: 15px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
     }
-    th { color: var(--text-muted); font-size: 13px; font-weight: 500; }
-    tr:hover { background: rgba(255,255,255,0.02); }
-    .status-badge {
-      padding: 4px 8px;
-      border-radius: 20px;
-      font-size: 11px;
+    th { 
+      color: var(--text-muted); 
+      font-size: 12px; 
       font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      background: rgba(0,0,0,0.2);
     }
-    .status-step1 { background: rgba(255, 179, 122, 0.2); color: #FFB37A; }
-    .status-completed { background: rgba(110, 231, 197, 0.2); color: #6EE7C5; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
     
-    .btn-export { width: auto; padding: 8px 16px; font-size: 14px; }
-    .btn-logout { background: transparent; color: var(--text-muted); border: 1px solid var(--border); width: auto; padding: 6px 12px; }
+    .status-badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-block;
+    }
+    .status-step1 { background: rgba(255, 179, 122, 0.15); color: #FFB37A; border: 1px solid rgba(255,179,122,0.3); }
+    .status-completed { background: rgba(110, 231, 197, 0.15); color: #6EE7C5; border: 1px solid rgba(110,231,197,0.3); }
+    
+    .btn-export { width: auto; font-size: 13px; padding: 10px 18px; margin-left: auto; }
+    .btn-logout { width: auto; padding: 8px 16px; font-size: 13px; }
+    
+    .track-cell {
+      max-width: 180px;
+      white-space: normal; /* wrap text since they are long */
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
@@ -164,7 +248,7 @@
       <button class="btn btn-export" id="exportBtn">Export CSV</button>
     </div>
 
-    <div style="overflow-x: auto;">
+    <div class="table-container">
       <table id="leadsTable">
         <thead>
           <tr>
