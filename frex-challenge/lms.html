@@ -159,7 +159,7 @@
 
     .analytics-grid {
       display: grid;
-      grid-template-columns: 2fr 1fr;
+      grid-template-columns: repeat(3, 1fr);
       gap: 24px;
       padding: 30px;
       border-bottom: 1px solid var(--panel-border);
@@ -344,6 +344,12 @@
             <canvas id="trackPieChart"></canvas>
           </div>
         </div>
+        <div class="chart-card">
+          <h3>Submission Patterns</h3>
+          <div style="position: relative; height: 260px; width: 100%; display: flex; justify-content: center;">
+            <canvas id="patternsRadarChart"></canvas>
+          </div>
+        </div>
       </div>
 
       <div class="filters">
@@ -361,9 +367,9 @@
       </select>
       <select id="trackFilter">
         <option value="">All Tracks</option>
-        <option value="Explore new scientific discoveries in space">Explore new scientific discoveries in space</option>
-        <option value="Solve environmental problems on Earth using space tech">Solve environmental problems on Earth</option>
-        <option value="Design creative businesses for the space economy">Design creative businesses for the space economy</option>
+        <option value="Space Exploration">Space Exploration</option>
+        <option value="Earth / Climate">Earth / Climate</option>
+        <option value="Creative Businesses">Creative Businesses</option>
       </select>
       <div style="display: flex; gap: 8px; margin-left: auto;">
         <button class="btn btn-export" id="exportZohoBtn" style="background: linear-gradient(135deg, var(--maroon-light), var(--maroon)); color: var(--cream); border: none;">Export for Zoho CRM</button>

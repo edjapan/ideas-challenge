@@ -5,6 +5,16 @@ import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https:/
 let leadsData = [];
 let leadsLineChartInstance = null;
 let trackPieChartInstance = null;
+let patternsRadarChartInstance = null;
+
+function getShortTrackName(longTrack) {
+  if (!longTrack) return 'Unknown';
+  const trackStr = longTrack.toLowerCase();
+  if (trackStr.includes('creative')) return 'Creative Businesses';
+  if (trackStr.includes('environmental') || trackStr.includes('earth') || trackStr.includes('climate')) return 'Earth / Climate';
+  if (trackStr.includes('scientific') || trackStr.includes('space') || trackStr.includes('swarm') || trackStr.includes('satellite')) return 'Space Exploration';
+  return 'Unknown';
+}
 
 // DOM Elements
 const loginView = document.getElementById('login-view');
@@ -86,7 +96,8 @@ function renderTable() {
     // Status Filter
     if (statusFilter.value && lead.status !== statusFilter.value) return false;
     // Track Filter
-    if (trackFilter.value && lead.track !== trackFilter.value) return false;
+    const shortTrack = getShortTrackName(lead.track);
+    if (trackFilter.value && shortTrack !== trackFilter.value) return false;
     
     return true;
   });
@@ -102,7 +113,7 @@ function renderTable() {
       <td>${lead.name}</td>
       <td>${lead.email}</td>
       <td>${lead.university}</td>
-      <td class="track-cell" title="${lead.track}">${lead.track}</td>
+      <td class="track-cell" title="${lead.track}">${getShortTrackName(lead.track)}</td>
       <td><span class="status-text ${statusClass}">${lead.status}</span></td>
       <td>
         <button class="btn btn-logout" onclick="window.viewEssay('${lead.id}')">View</button>
@@ -127,7 +138,8 @@ function renderTable() {
 function renderCharts(filteredData) {
   const ctxLine = document.getElementById('leadsLineChart');
   const ctxPie = document.getElementById('trackPieChart');
-  if (!ctxLine || !ctxPie || typeof Chart === 'undefined') return;
+  const ctxRadar = document.getElementById('patternsRadarChart');
+  if (!ctxLine || !ctxPie || !ctxRadar || typeof Chart === 'undefined') return;
 
   // 1. Line Chart (Leads over time)
   const dateCounts = {};
@@ -181,11 +193,7 @@ function renderCharts(filteredData) {
   // 2. Doughnut Chart (Tracks)
   const trackCounts = {};
   filteredData.forEach(lead => {
-    let track = lead.track || 'Unknown';
-    if (track.includes('creative businesses')) track = 'Creative Businesses';
-    else if (track.includes('environmental problems')) track = 'Earth / Climate';
-    else if (track.includes('scientific discoveries')) track = 'Space Exploration';
-    
+    let track = getShortTrackName(lead.track);
     trackCounts[track] = (trackCounts[track] || 0) + 1;
   });
   
@@ -211,6 +219,82 @@ function renderCharts(filteredData) {
       cutout: '75%',
       plugins: {
         legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: { size: 11 } } }
+      }
+    }
+  });
+
+  // 3. Radar Chart (Time/Day patterns across Topics)
+  const radarAxes = ['Morning', 'Afternoon', 'Evening', 'Weekday', 'Weekend'];
+  const topicData = {
+    'Space Exploration': [0, 0, 0, 0, 0],
+    'Earth / Climate': [0, 0, 0, 0, 0],
+    'Creative Businesses': [0, 0, 0, 0, 0]
+  };
+
+  filteredData.forEach(lead => {
+    const track = getShortTrackName(lead.track);
+    if (!topicData[track]) return;
+
+    const d = new Date(lead.createdAt);
+    const hour = d.getHours();
+    const day = d.getDay();
+
+    // Time
+    if (hour >= 5 && hour < 12) topicData[track][0]++; // Morning
+    else if (hour >= 12 && hour < 18) topicData[track][1]++; // Afternoon
+    else topicData[track][2]++; // Evening
+
+    // Day
+    if (day === 0 || day === 6) topicData[track][4]++; // Weekend
+    else topicData[track][3]++; // Weekday
+  });
+
+  if (patternsRadarChartInstance) patternsRadarChartInstance.destroy();
+
+  patternsRadarChartInstance = new Chart(ctxRadar, {
+    type: 'radar',
+    data: {
+      labels: radarAxes,
+      datasets: [
+        {
+          label: 'Space',
+          data: topicData['Space Exploration'],
+          borderColor: '#EB7A65',
+          backgroundColor: 'rgba(235, 122, 101, 0.2)',
+          borderWidth: 2,
+          pointRadius: 2
+        },
+        {
+          label: 'Earth',
+          data: topicData['Earth / Climate'],
+          borderColor: '#6EE7C5',
+          backgroundColor: 'rgba(110, 231, 197, 0.2)',
+          borderWidth: 2,
+          pointRadius: 2
+        },
+        {
+          label: 'Creative',
+          data: topicData['Creative Businesses'],
+          borderColor: '#FFB37A',
+          backgroundColor: 'rgba(255, 179, 122, 0.2)',
+          borderWidth: 2,
+          pointRadius: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } }
+      },
+      scales: {
+        r: {
+          angleLines: { color: 'rgba(255,255,255,0.1)' },
+          grid: { color: 'rgba(255,255,255,0.1)' },
+          pointLabels: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } },
+          ticks: { display: false }
+        }
       }
     }
   });
@@ -246,7 +330,8 @@ if (exportZohoBtn) {
         if (dateFilter.value === '30days' && leadDateObj < new Date(today.setDate(today.getDate() - 30))) return false;
       }
       if (statusFilter.value && lead.status !== statusFilter.value) return false;
-      if (trackFilter.value && lead.track !== trackFilter.value) return false;
+      const shortTrack = getShortTrackName(lead.track);
+      if (trackFilter.value && shortTrack !== trackFilter.value) return false;
       return true;
     });
 
