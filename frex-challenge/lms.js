@@ -6,6 +6,7 @@ let leadsData = [];
 let leadsLineChartInstance = null;
 let trackPieChartInstance = null;
 let patternsRadarChartInstance = null;
+let statusPieChartInstance = null;
 
 function getShortTrackName(longTrack) {
   if (!longTrack) return 'Unknown';
@@ -139,7 +140,8 @@ function renderCharts(filteredData) {
   const ctxLine = document.getElementById('leadsLineChart');
   const ctxPie = document.getElementById('trackPieChart');
   const ctxRadar = document.getElementById('patternsRadarChart');
-  if (!ctxLine || !ctxPie || !ctxRadar || typeof Chart === 'undefined') return;
+  const ctxStatus = document.getElementById('statusPieChart');
+  if (!ctxLine || !ctxPie || !ctxRadar || !ctxStatus || typeof Chart === 'undefined') return;
 
   // 1. Line Chart (Leads over time)
   const dateCounts = {};
@@ -295,6 +297,39 @@ function renderCharts(filteredData) {
           pointLabels: { color: 'rgba(255,255,255,0.7)', font: { size: 11 } },
           ticks: { display: false }
         }
+      }
+    }
+  });
+
+  // 4. Doughnut Chart (Status Breakdown)
+  const statusCounts = {};
+  filteredData.forEach(lead => {
+    let status = lead.status || 'Unknown';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+  });
+  
+  const statusLabels = Object.keys(statusCounts);
+  const statusValues = statusLabels.map(s => statusCounts[s]);
+
+  if (statusPieChartInstance) statusPieChartInstance.destroy();
+
+  statusPieChartInstance = new Chart(ctxStatus, {
+    type: 'doughnut',
+    data: {
+      labels: statusLabels,
+      datasets: [{
+        data: statusValues,
+        backgroundColor: ['#6EE7C5', '#FFB37A', '#EB7A65', '#8C4646'], // Matches our CSS status colors
+        borderWidth: 0,
+        hoverOffset: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '75%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: { size: 11 } } }
       }
     }
   });
