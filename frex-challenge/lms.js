@@ -122,8 +122,11 @@ function renderTable() {
       <td>${dateStr}</td>
       <td>${lead.name}</td>
       <td>${lead.email}</td>
-      <td>${lead.university}</td>
-      <td class="track-cell" title="${lead.track}">${getShortTrackName(lead.track)}</td>
+      <td>${lead.university || 'N/A'}</td>
+      <td>${lead.education || 'N/A'}</td>
+      <td>${lead.degreeYear || 'N/A'}</td>
+      <td class="track-cell" title="${lead.track || 'N/A'}">${getShortTrackName(lead.track)}</td>
+      <td title="${lead.track || 'N/A'}">${(lead.track && lead.track.length > 40) ? lead.track.substring(0, 40) + '...' : (lead.track || 'N/A')}</td>
       <td><span class="status-text ${statusClass}">${lead.status}</span></td>
       <td>
         <button class="btn btn-logout" onclick="window.viewEssay('${lead.id}')">View</button>
@@ -385,7 +388,7 @@ if (exportZohoBtn) {
     }
 
     // Download Dump Data (All Columns)
-    const headers = ["Date", "Name", "Email", "Phone", "University", "Education Level", "Degree Year", "Lead Status", "Track", "Question", "Idea Essay"];
+    const headers = ["Date", "Name", "Email", "Phone", "University", "Education Level", "Degree Year", "Lead Status", "Track", "Topic", "Question", "Idea Essay"];
     
     // Map rows
     const csvRows = filteredData.map(lead => {
@@ -397,13 +400,15 @@ if (exportZohoBtn) {
       const education = lead.education ? `"${lead.education.replace(/"/g, '""')}"` : '""';
       const degreeYear = lead.degreeYear ? `"${lead.degreeYear.replace(/"/g, '""')}"` : '""';
       const status = lead.status ? `"${lead.status.replace(/"/g, '""')}"` : '""';
-      const track = lead.track ? `"${lead.track.replace(/"/g, '""')}"` : '""';
+      const trackName = getShortTrackName(lead.track);
+      const track = trackName ? `"${trackName.replace(/"/g, '""')}"` : '""';
+      const topic = lead.track ? `"${lead.track.replace(/"/g, '""')}"` : '""';
       
       // Strip newlines from questions and essays to ensure the CSV row never breaks!
       const question = lead.question ? `"${lead.question.replace(/[\r\n]+/g, ' ').replace(/"/g, '""')}"` : '""';
       const essay = lead.ideaEssay ? `"${lead.ideaEssay.replace(/[\r\n]+/g, ' ').replace(/"/g, '""')}"` : '""';
       
-      return `${date},${name},${email},${phone},${company},${education},${degreeYear},${status},${track},${question},${essay}`;
+      return `${date},${name},${email},${phone},${company},${education},${degreeYear},${status},${track},${topic},${question},${essay}`;
     });
 
     // Add BOM (\uFEFF) for Excel UTF-8 compatibility and join with standard \r\n

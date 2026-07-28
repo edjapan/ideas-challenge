@@ -2176,13 +2176,17 @@
       const email = document.getElementById('regEmail').value.trim();
       const university = document.getElementById('regUni').value.trim();
       const education = document.getElementById('regEdu').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const degreeYear = document.getElementById('regDegreeYear').value.trim();
       const selectedInterests = Array.from(document.querySelectorAll('input[name="interest"]:checked')).map(el => el.value);
 
       const leadData = {
         name,
         email,
+        phone,
         university,
         education,
+        degreeYear,
         track: selectedInterests[0] || "Unknown" // Since we warn if multiple are selected, we just take the first
       };
 
