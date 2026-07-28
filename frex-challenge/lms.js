@@ -33,11 +33,19 @@ const trackFilter = document.getElementById('trackFilter');
 const exportZohoBtn = document.getElementById('exportZohoBtn');
 
 // Simple Hardcoded Auth
+// Check session on load
+if (sessionStorage.getItem('lms_logged_in') === 'true') {
+  loginView.style.display = 'none';
+  dashboardView.style.display = 'block';
+  fetchLeadsFromFirestore();
+}
+
 loginBtn.addEventListener('click', () => {
   const email = emailInput.value;
   const password = passwordInput.value;
   
   if (email === 'admin@futurecareerhub.in' && password === 'frex2026') {
+    sessionStorage.setItem('lms_logged_in', 'true');
     loginView.style.display = 'none';
     dashboardView.style.display = 'block';
     fetchLeadsFromFirestore();
@@ -59,6 +67,7 @@ function fetchLeadsFromFirestore() {
 }
 
 logoutBtn.addEventListener('click', () => {
+  sessionStorage.removeItem('lms_logged_in');
   dashboardView.style.display = 'none';
   loginView.style.display = 'flex';
   emailInput.value = '';
