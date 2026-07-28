@@ -416,7 +416,7 @@ window.sendNotification = async function(leadId, name, email, track, status, but
       return;
     }
     
-    let templateId = 'template_o9mzhys'; 
+    let templateId = 'template_zy6mkd1'; 
 
     const uniqueLink = `${window.location.origin}/frex-challenge/submit-idea?id=${leadId}`;
     
