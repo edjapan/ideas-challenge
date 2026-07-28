@@ -375,31 +375,37 @@ if (exportZohoBtn) {
       return;
     }
 
-    // Zoho CRM Standard & Custom Fields
-    const headers = ["Last Name", "Company", "Email", "Phone", "Lead Status", "Track", "Question", "Idea Essay"];
+    // Download Dump Data (All Columns)
+    const headers = ["Date", "Name", "Email", "Phone", "University", "Education Level", "Degree Year", "Lead Status", "Track", "Question", "Idea Essay"];
     
     // Map rows
     const csvRows = filteredData.map(lead => {
+      const date = lead.createdAt ? `"${new Date(lead.createdAt).toLocaleString().replace(/"/g, '""')}"` : '""';
       const name = lead.name ? `"${lead.name.replace(/"/g, '""')}"` : '""';
-      const company = lead.university ? `"${lead.university.replace(/"/g, '""')}"` : '""';
       const email = lead.email ? `"${lead.email.replace(/"/g, '""')}"` : '""';
       const phone = lead.phone ? `"${lead.phone.replace(/"/g, '""')}"` : '""';
+      const company = lead.university ? `"${lead.university.replace(/"/g, '""')}"` : '""';
+      const education = lead.education ? `"${lead.education.replace(/"/g, '""')}"` : '""';
+      const degreeYear = lead.degreeYear ? `"${lead.degreeYear.replace(/"/g, '""')}"` : '""';
       const status = lead.status ? `"${lead.status.replace(/"/g, '""')}"` : '""';
       const track = lead.track ? `"${lead.track.replace(/"/g, '""')}"` : '""';
-      const question = lead.question ? `"${lead.question.replace(/"/g, '""')}"` : '""';
-      const essay = lead.ideaEssay ? `"${lead.ideaEssay.replace(/"/g, '""')}"` : '""';
       
-      return `${name},${company},${email},${phone},${status},${track},${question},${essay}`;
+      // Strip newlines from questions and essays to ensure the CSV row never breaks!
+      const question = lead.question ? `"${lead.question.replace(/[\r\n]+/g, ' ').replace(/"/g, '""')}"` : '""';
+      const essay = lead.ideaEssay ? `"${lead.ideaEssay.replace(/[\r\n]+/g, ' ').replace(/"/g, '""')}"` : '""';
+      
+      return `${date},${name},${email},${phone},${company},${education},${degreeYear},${status},${track},${question},${essay}`;
     });
 
-    const csvString = [headers.join(','), ...csvRows].join('\\n');
+    // Add BOM (\uFEFF) for Excel UTF-8 compatibility and join with standard \r\n
+    const csvString = '\uFEFF' + [headers.join(','), ...csvRows].join('\r\n');
     
     // Trigger download
-    const blob = new Blob([csvString], { type: 'text/csv' });
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.setAttribute('href', url);
-    a.setAttribute('download', 'zoho_leads_export.csv');
+    a.setAttribute('download', 'challenge_leads_dump.csv');
     a.click();
   });
 }
