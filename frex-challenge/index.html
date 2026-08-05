@@ -2166,11 +2166,13 @@
     function validateForm() {
       if (document.getElementById('regName').value.trim() === '') return 'Please enter your Full Name.';
       if (document.getElementById('regEmail').value.trim() === '') return 'Please enter your Email Address.';
+      if (document.getElementById('regPhone').value.length !== 14) return 'Please enter a valid 10-digit Indian phone number.';
       if (document.getElementById('regUni').value.trim() === '') return 'Please enter your Current University / Institution.';
       if (document.getElementById('regEdu').value.trim() === '') return 'Please enter your Current Education Level.';
+      if (document.getElementById('regDegreeYear').value.trim() === '') return 'Please enter your Current Year of the Degree.';
       
       const selectedInterests = document.querySelectorAll('input[name="interest"]:checked');
-      if (selectedInterests.length === 0) return 'Please select at least one research interest.';
+      if (selectedInterests.length === 0) return 'Please select one research track.';
       
       return null; // No errors
     }
